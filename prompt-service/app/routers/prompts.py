@@ -26,3 +26,10 @@ def get_prompt(prompt_id: str, db: Session = Depends(get_db)):
     if not prompt:
         raise HTTPException(status_code=404, detail="Prompt not found")
     return prompt
+
+@router.put("/{prompt_id}", response_model=PromptResponse)
+def update_prompt(prompt_id: str, payload: PromptUpdate, db: Session = Depends(get_db)):
+    prompt = prompt_service.update_prompt(db, prompt_id, payload)
+    if not prompt:
+        raise HTTPException(status_code=404, detail="Prompt not found")
+    return prompt
