@@ -33,3 +33,9 @@ def update_prompt(prompt_id: str, payload: PromptUpdate, db: Session = Depends(g
     if not prompt:
         raise HTTPException(status_code=404, detail="Prompt not found")
     return prompt
+
+@router.delete("/{prompt_id}", status_code=204)
+def delete_prompt(prompt_id: str, db: Session = Depends(get_db)):
+    deleted = prompt_service.delete_prompt(db, prompt_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Prompt not found")
