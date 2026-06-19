@@ -39,3 +39,7 @@ def delete_prompt(prompt_id: str, db: Session = Depends(get_db)):
     deleted = prompt_service.delete_prompt(db, prompt_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Prompt not found")
+    
+@router.get("/{prompt_id}/exists")
+def check_exists(prompt_id: str, db: Session = Depends(get_db)):
+    return {"exists": prompt_service.prompt_exists(db, prompt_id)}
