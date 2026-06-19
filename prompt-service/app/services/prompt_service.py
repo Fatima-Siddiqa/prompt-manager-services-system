@@ -46,3 +46,11 @@ def update_prompt(db: Session, prompt_id: str, payload: PromptUpdate) -> Optiona
     db.commit()
     db.refresh(prompt)
     return prompt
+
+def delete_prompt(db: Session, prompt_id: str) -> bool:
+    prompt = get_prompt_by_id(db, prompt_id)
+    if not prompt:
+        return False
+    db.delete(prompt)
+    db.commit()
+    return True
