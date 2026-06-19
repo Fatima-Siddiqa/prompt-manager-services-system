@@ -30,3 +30,6 @@ def get_all_prompts(
     if tag:
         query = query.filter(Prompt.tags.contains(tag))
     return query.limit(limit).all()
+
+def get_prompt_by_id(db: Session, prompt_id: str) -> Optional[Prompt]:
+    return db.query(Prompt).filter(Prompt.id == prompt_id).first()
