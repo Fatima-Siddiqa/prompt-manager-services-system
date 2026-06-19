@@ -11,3 +11,11 @@ router = APIRouter()
 @router.post("/", response_model=PromptResponse, status_code=201)
 def create_prompt(payload: PromptCreate, db: Session = Depends(get_db)):
     return prompt_service.create_prompt(db, payload)
+
+@router.get("/", response_model=List[PromptResponse])
+def list_prompts(
+    tag: Optional[str] = None,
+    limit: Optional[int] = 100,
+    db: Session = Depends(get_db),
+):
+    return prompt_service.get_all_prompts(db, tag=tag, limit=limit)
