@@ -4,6 +4,7 @@ from app.models.prompt import Prompt
 from app.schemas.prompt import PromptCreate
 from app.utils.time import utcnow
 from typing import Optional, List
+from app.schemas.prompt import PromptUpdate
 
 def create_prompt(db: Session, payload: PromptCreate) -> Prompt:
     prompt = Prompt(
@@ -33,3 +34,15 @@ def get_all_prompts(
 
 def get_prompt_by_id(db: Session, prompt_id: str) -> Optional[Prompt]:
     return db.query(Prompt).filter(Prompt.id == prompt_id).first()
+
+def update_prompt(db: Session, prompt_id: str, payload: PromptUpdate) -> Optional[Prompt]:
+    prompt = get_prompt_by_id(db, prompt_id)
+    if not prompt:
+        return None
+    update_data = payload.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(prompt, field, value)
+    prompt.updated_at = utcnow()
+    db.commit()
+    db.refresh(prompt)
+    return prompt
