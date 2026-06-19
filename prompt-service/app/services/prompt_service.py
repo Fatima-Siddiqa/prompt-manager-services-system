@@ -54,3 +54,6 @@ def delete_prompt(db: Session, prompt_id: str) -> bool:
     db.delete(prompt)
     db.commit()
     return True
+
+def prompt_exists(db: Session, prompt_id: str) -> bool:
+    return db.query(Prompt).filter(Prompt.id == prompt_id).first() is not None
