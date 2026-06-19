@@ -16,3 +16,16 @@ class PromptUpdate(BaseModel):
     content: Optional[str] = None
     tags: Optional[str] = None
     model_target: Optional[str] = None
+
+class PromptResponse(BaseModel):
+    id: str
+    name: str
+    description: Optional[str]
+    content: str
+    tags: Optional[str]
+    model_target: Optional[str]
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
