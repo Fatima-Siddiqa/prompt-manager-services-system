@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.models.prompt import Prompt
 from app.schemas.prompt import PromptCreate
 from app.utils.time import utcnow
-
+from typing import Optional, List
 
 def create_prompt(db: Session, payload: PromptCreate) -> Prompt:
     prompt = Prompt(
@@ -20,3 +20,13 @@ def create_prompt(db: Session, payload: PromptCreate) -> Prompt:
     db.commit()
     db.refresh(prompt)
     return prompt
+
+def get_all_prompts(
+    db: Session,
+    tag: Optional[str] = None,
+    limit: int = 100
+) -> List[Prompt]:
+    query = db.query(Prompt)
+    if tag:
+        query = query.filter(Prompt.tags.contains(tag))
+    return query.limit(limit).all()
