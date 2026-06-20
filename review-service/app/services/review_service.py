@@ -56,3 +56,15 @@ def create_review(payload: ReviewCreate) -> dict:
 
     save_review(review)
     return review
+
+def get_summary(prompt_id: str) -> dict:
+    reviews = [r for r in load_all_reviews() if r["prompt_id"] == prompt_id]
+    if not reviews:
+        raise HTTPException(status_code=404, detail="No reviews found for this prompt")
+    avg = round(sum(r["score"] for r in reviews) / len(reviews), 2)
+    return {
+        "prompt_id": prompt_id,
+        "total_reviews": len(reviews),
+        "average_score": avg,
+        "feedback": [r["feedback"] for r in reviews],
+    }
