@@ -2,6 +2,7 @@ from fastapi import APIRouter
 from typing import Optional, List
 from app.schemas.review import ReviewCreate, ReviewResponse
 from app.services import review_service
+from fastapi import HTTPException
 
 router = APIRouter()
 
@@ -16,3 +17,10 @@ def list_reviews(prompt_id: Optional[str] = None):
     if prompt_id:
         reviews = [r for r in reviews if r["prompt_id"] == prompt_id]
     return reviews
+
+@router.get("/{review_id}", response_model=ReviewResponse)
+def get_review(review_id: str):
+    review = review_service.load_review(review_id)
+    if not review:
+        raise HTTPException(status_code=404, detail="Review not found")
+    return review
