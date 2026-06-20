@@ -24,3 +24,7 @@ def get_review(review_id: str):
     if not review:
         raise HTTPException(status_code=404, detail="Review not found")
     return review
+
+@router.get("/{prompt_id}/summary")
+def get_summary(prompt_id: str):
+    return review_service.get_summary(prompt_id)
