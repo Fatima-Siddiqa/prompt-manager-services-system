@@ -9,18 +9,19 @@ export default function PromptsPage() {
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [tag, setTag] = useState('')
+  const [limit, setLimit] = useState(100)
 
   async function load() {
     setLoading(true)
     try {
-      const data = await fetchPrompts(tag)
+      const data = await fetchPrompts(tag, limit)
       setPrompts(data)
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => { load() }, [tag])
+  useEffect(() => { load() }, [tag, limit])
 
   async function handleCreate(form) {
     setSaving(true)
@@ -31,6 +32,17 @@ export default function PromptsPage() {
     } finally {
       setSaving(false)
     }
+  }
+
+  const inputStyle = {
+    background: 'var(--dark-2)',
+    border: '1px solid var(--dark-4)',
+    borderRadius: 'var(--radius)',
+    padding: '8px 14px',
+    color: 'var(--text-primary)',
+    fontSize: '13px',
+    fontFamily: 'var(--font-mono)',
+    outline: 'none',
   }
 
   return (
@@ -53,6 +65,7 @@ export default function PromptsPage() {
             color: showForm ? 'var(--text-secondary)' : 'var(--dark)',
             fontSize: '14px',
             fontWeight: '600',
+            cursor: 'pointer',
           }}
         >
           {showForm ? 'Cancel' : '+ New Prompt'}
@@ -74,23 +87,23 @@ export default function PromptsPage() {
         </div>
       )}
 
-      <div style={{ marginBottom: '20px' }}>
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
         <input
           value={tag}
           onChange={e => setTag(e.target.value)}
           placeholder="Filter by tag..."
-          style={{
-            background: 'var(--dark-2)',
-            border: '1px solid var(--dark-4)',
-            borderRadius: 'var(--radius)',
-            padding: '8px 14px',
-            color: 'var(--text-primary)',
-            fontSize: '13px',
-            fontFamily: 'var(--font-mono)',
-            outline: 'none',
-            width: '220px',
-          }}
+          style={{ ...inputStyle, width: '200px' }}
         />
+        <select
+          value={limit}
+          onChange={e => setLimit(Number(e.target.value))}
+          style={{ ...inputStyle, width: '140px' }}
+        >
+          <option value={10}>limit: 10</option>
+          <option value={25}>limit: 25</option>
+          <option value={50}>limit: 50</option>
+          <option value={100}>limit: 100</option>
+        </select>
       </div>
 
       {loading ? (
@@ -104,7 +117,7 @@ export default function PromptsPage() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {prompts.map(p => (
-            <PromptCard key={p.id} prompt={p} onDeleted={load} />
+            <PromptCard key={p.id} prompt={p} onDeleted={load} onUpdated={load} />
           ))}
         </div>
       )}
