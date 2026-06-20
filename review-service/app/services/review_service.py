@@ -1,6 +1,11 @@
 import os
 import json
 from app.core.config import settings
+import uuid
+import httpx
+from fastapi import HTTPException
+from app.schemas.review import ReviewCreate
+from app.utils.time import utcnow
 
 def save_review(review: dict) -> None:
     os.makedirs(settings.REVIEWS_DIR, exist_ok=True)
@@ -23,3 +28,31 @@ def load_all_reviews() -> list[dict]:
             with open(os.path.join(settings.REVIEWS_DIR, filename)) as f:
                 reviews.append(json.load(f))
     return reviews
+
+def create_review(payload: ReviewCreate) -> dict:
+    try:
+        response = httpx.get(
+            f"{settings.PROMPT_SERVICE_URL}/prompts/{payload.prompt_id}"
+        )
+    except httpx.RequestError:
+        raise HTTPException(status_code=503, detail="prompt-service is unreachable")
+
+    if response.status_code == 404:
+        raise HTTPException(status_code=404, detail="Prompt not found in prompt-service")
+    if response.status_code != 200:
+        raise HTTPException(status_code=502, detail="Unexpected error from prompt-service")
+
+    prompt_data = response.json()
+
+    review = {
+        "id": str(uuid.uuid4()),
+        "prompt_id": payload.prompt_id,
+        "prompt_snapshot": prompt_data["content"],
+        "reviewer_name": payload.reviewer_name,
+        "score": payload.score,
+        "feedback": payload.feedback,
+        "reviewed_at": utcnow().isoformat(),
+    }
+
+    save_review(review)
+    return review
