@@ -1,4 +1,4 @@
-const BASE = '/api/reviews'
+const BASE = '/api/reviews/'
 
 export async function fetchReviews(promptId = '') {
   const params = new URLSearchParams()
