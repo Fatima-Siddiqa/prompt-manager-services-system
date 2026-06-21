@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { fetchReviews, fetchSummary, createReview } from '../api/reviews'
 import { fetchPrompts } from '../api/prompts'
 import { fetchReviews, fetchSummary, createReview, deleteReview } from '../api/reviews'
 export default function ReviewsPage() {
