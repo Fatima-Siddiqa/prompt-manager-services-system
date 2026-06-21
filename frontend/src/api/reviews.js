@@ -23,3 +23,8 @@ export async function createReview(data) {
   if (!res.ok) throw new Error('Failed to submit review')
   return res.json()
 }
+
+export async function deleteReview(id) {
+  const res = await fetch(`${BASE}${id}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error('Failed to delete review')
+}
