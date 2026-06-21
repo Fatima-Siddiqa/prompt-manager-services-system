@@ -227,9 +227,6 @@ export default function ReviewsPage() {
 
       {/* Filter by prompt_id — GET /reviews?prompt_id= */}
       <div style={{ marginBottom: '20px' }}>
-        <label style={{ ...labelStyle, display: 'block', marginBottom: '8px' }}>
-          Filter by prompt — GET /reviews?prompt_id=
-        </label>
         <select
           style={{
             background: 'var(--dark-2)',
@@ -261,9 +258,6 @@ export default function ReviewsPage() {
           padding: '20px 24px',
           marginBottom: '24px',
         }}>
-          <div style={{ fontSize: '12px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginBottom: '12px' }}>
-            GET /reviews/{'{prompt_id}'}/summary
-          </div>
           {summaryLoading ? (
             <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>loading summary...</div>
           ) : summary ? (
@@ -343,9 +337,6 @@ export default function ReviewsPage() {
               {/* GET /reviews/{id} — show full details when clicked */}
               {selectedReview?.id === r.id && (
                 <div style={{ borderTop: '1px solid var(--dark-4)', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-                    GET /reviews/{r.id}
-                  </div>
                   <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
                     prompt_id: {r.prompt_id}
                   </div>
