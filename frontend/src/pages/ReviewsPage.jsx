@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { fetchReviews, fetchSummary, createReview } from '../api/reviews'
 import { fetchPrompts } from '../api/prompts'
-
+import { fetchReviews, fetchSummary, createReview, deleteReview } from '../api/reviews'
 export default function ReviewsPage() {
   const [reviews, setReviews] = useState([])
   const [prompts, setPrompts] = useState([])
@@ -64,6 +64,14 @@ export default function ReviewsPage() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  async function handleDeleteReview(e, reviewId) {
+    e.stopPropagation()
+    if (!confirm('Delete this review?')) return
+    await deleteReview(reviewId)
+    loadReviews(filterPromptId)
+    if (filterPromptId) loadSummary(filterPromptId)
   }
 
   const inputStyle = {
@@ -309,8 +317,26 @@ export default function ReviewsPage() {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ fontWeight: '600', fontSize: '14px' }}>{r.reviewer_name}</div>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '18px', fontWeight: '600', color: 'var(--sage)' }}>
-                  {r.score}<span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>/5</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '18px', fontWeight: '600', color: 'var(--sage)' }}>
+                    {r.score}<span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>/5</span>
+                  </div>
+                  <button
+                    onClick={e => handleDeleteReview(e, r.id)}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: 'var(--text-muted)',
+                      fontSize: '16px',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--danger)'; e.currentTarget.style.background = 'rgba(224,112,112,0.1)' }}
+                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.background = 'transparent' }}
+                  >
+                    ✕
+                  </button>
                 </div>
               </div>
               <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{r.feedback}</div>
