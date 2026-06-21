@@ -9,7 +9,8 @@ export async function fetchReviews(promptId = '') {
 }
 
 export async function fetchSummary(promptId) {
-  const res = await fetch(`${BASE}/${promptId}/summary`)
+  const res = await fetch(`/api/reviews/${promptId}/summary`)
+  if (res.status === 404) return null
   if (!res.ok) throw new Error('No reviews found')
   return res.json()
 }
