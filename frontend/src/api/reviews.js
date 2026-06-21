@@ -25,6 +25,6 @@ export async function createReview(data) {
 }
 
 export async function deleteReview(id) {
-  const res = await fetch(`${BASE}${id}`, { method: 'DELETE' })
+  const res = await fetch(`/api/reviews/${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error('Failed to delete review')
 }
