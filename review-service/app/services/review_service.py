@@ -68,3 +68,10 @@ def get_summary(prompt_id: str) -> dict:
         "average_score": avg,
         "feedback": [r["feedback"] for r in reviews],
     }
+
+def delete_review(review_id: str) -> bool:
+    path = os.path.join(settings.REVIEWS_DIR, f"{review_id}.json")
+    if not os.path.exists(path):
+        return False
+    os.remove(path)
+    return True

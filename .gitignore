@@ -6,3 +6,7 @@ __pycache__/
 venv/
 .venv/
 reviews/*.json
+nginx.conf
+mime.types
+logs/
+temp/
