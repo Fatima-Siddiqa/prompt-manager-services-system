@@ -28,3 +28,9 @@ def get_review(review_id: str):
 @router.get("/{prompt_id}/summary")
 def get_summary(prompt_id: str):
     return review_service.get_summary(prompt_id)
+
+@router.delete("/{review_id}", status_code=204)
+def delete_review(review_id: str):
+    deleted = review_service.delete_review(review_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Review not found")
