@@ -1,4 +1,4 @@
-const BASE = '/api/prompts'
+const BASE = '/api/prompts/'
 
 export async function fetchPrompts(tag = '', limit = 100) {
   const params = new URLSearchParams()
