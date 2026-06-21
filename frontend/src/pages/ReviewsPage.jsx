@@ -293,6 +293,52 @@ export default function ReviewsPage() {
           )}
         </div>
       )}
+      {confirmDeleteId && (
+        <div style={{
+          background: 'var(--dark-3)',
+          border: '1px solid var(--danger)',
+          borderRadius: 'var(--radius-lg)',
+          padding: '16px 20px',
+          marginBottom: '16px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+          <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+            Delete this review?
+          </span>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              onClick={() => setConfirmDeleteId(null)}
+              style={{
+                padding: '6px 14px',
+                background: 'transparent',
+                border: '1px solid var(--dark-4)',
+                borderRadius: 'var(--radius)',
+                color: 'var(--text-secondary)',
+                fontSize: '13px',
+                cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmDelete}
+              style={{
+                padding: '6px 14px',
+                background: 'rgba(224,112,112,0.15)',
+                border: '1px solid var(--danger)',
+                borderRadius: 'var(--radius)',
+                color: 'var(--danger)',
+                fontSize: '13px',
+                cursor: 'pointer',
+              }}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Reviews list — GET /reviews or GET /reviews?prompt_id= */}
       {loading ? (
