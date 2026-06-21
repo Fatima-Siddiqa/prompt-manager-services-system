@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --sage: #BAD8B6;
+  --sage-dim: #8fb889;
+  --dark: #273338;
+  --dark-2: #1e282c;
+  --dark-3: #324048;
+  --dark-4: #3d4f57;
+  --text-primary: #e8f0ec;
+  --text-secondary: #8aab94;
+  --text-muted: #4f6b5a;
+  --danger: #e07070;
+  --success: #7ec88a;
+  --font-ui: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --transition: 0.18s ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--dark);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+button {
+  cursor: pointer;
+  font-family: var(--font-ui);
+}
+
+input, textarea, select {
+  font-family: var(--font-ui);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--dark-2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--dark-4);
+  border-radius: 3px;
+}
