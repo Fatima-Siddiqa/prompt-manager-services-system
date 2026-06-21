@@ -13,6 +13,7 @@ export default function ReviewsPage() {
   const [form, setForm] = useState({ prompt_id: '', reviewer_name: '', score: 3, feedback: '' })
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null)
 
   async function loadReviews(promptId = '') {
     setLoading(true)
@@ -67,8 +68,12 @@ export default function ReviewsPage() {
 
   async function handleDeleteReview(e, reviewId) {
     e.stopPropagation()
-    if (!confirm('Delete this review?')) return
-    await deleteReview(reviewId)
+    setConfirmDeleteId(reviewId)
+  }
+
+  async function confirmDelete() {
+    await deleteReview(confirmDeleteId)
+    setConfirmDeleteId(null)
     loadReviews(filterPromptId)
     if (filterPromptId) loadSummary(filterPromptId)
   }
