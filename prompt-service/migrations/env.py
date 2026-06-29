@@ -2,11 +2,16 @@ import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
+from logging.config import fileConfig
+from sqlalchemy import create_engine, pool
+from alembic import context
+
 from app.database import Base
-from app.models import prompt  # existing model
+from app.models import prompt, chat
 from app.core.config import settings
 
-# we'll add chat model import in next step
+config = context.config
+fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
 
