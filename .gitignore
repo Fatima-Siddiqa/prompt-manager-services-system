@@ -10,3 +10,6 @@ nginx.conf
 mime.types
 logs/
 temp/
+node_modules/
+dist/
+review-service/reviews/*.json
