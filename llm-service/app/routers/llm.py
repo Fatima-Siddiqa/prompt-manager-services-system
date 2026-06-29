@@ -42,7 +42,6 @@ async def call_openrouter(client: httpx.AsyncClient, messages: list[dict], model
 
     return response.json()
 
-
 @router.post("/generate", response_model=GenerateResponse)
 async def generate(request: Request, body: GenerateRequest):
     client: httpx.AsyncClient = request.app.state.http_client
