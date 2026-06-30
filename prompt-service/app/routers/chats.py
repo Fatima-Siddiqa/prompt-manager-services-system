@@ -37,7 +37,7 @@ def chat_to_dict(chat, messages):
 
 @router.post("/prompts/{prompt_id}/execute")
 async def execute_prompt(prompt_id: str, body: ExecuteRequest, request: Request, db: Session = Depends(get_db)):
-    prompt = await asyncio.to_thread(prompt_service.get_prompt, db, prompt_id)
+    prompt = await asyncio.to_thread(prompt_service.get_prompt_by_id, db, prompt_id)
     if not prompt:
         raise HTTPException(status_code=404, detail="Prompt not found")
 
