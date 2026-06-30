@@ -17,7 +17,7 @@ export default function ReviewsPage() {
   async function loadReviews(promptId = '') {
     setLoading(true)
     try {
-      const data = await fetchReviews(promptId)
+      const data = await fetchReviews({ promptId })
       setReviews(data)
     } finally {
       setLoading(false)
