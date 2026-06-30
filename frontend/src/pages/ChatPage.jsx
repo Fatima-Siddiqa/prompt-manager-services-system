@@ -41,7 +41,7 @@ export default function ChatPage() {
   )
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 120px)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <button
           onClick={() => navigate('/chats')}
@@ -73,7 +73,7 @@ export default function ChatPage() {
         </button>
       </div>
 
-      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ height: '60vh', minHeight: '400px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <ChatView chat={chat} onUpdated={load} />
       </div>
 
