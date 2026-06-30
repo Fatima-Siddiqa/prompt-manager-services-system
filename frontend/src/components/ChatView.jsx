@@ -122,7 +122,10 @@ export default function ChatView({ chat, onUpdated }) {
         {chat.messages.map(m => (
           <div key={m.id} style={bubbleStyle(m.role)}>
             <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase' }}>
-              {m.role}{m.total_tokens > 0 ? ` · ${m.total_tokens} tokens` : ''}
+              {m.role}
+              {m.role === 'assistant' && m.total_tokens > 0
+                ? ` · ${m.prompt_tokens} in / ${m.completion_tokens} out / ${m.total_tokens} total`
+                : ''}
             </div>
             {m.content}
           </div>
