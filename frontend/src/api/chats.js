@@ -1,5 +1,5 @@
-const PROMPTS_BASE = '/api/prompts'
-const CHATS_BASE = '/api/chats'
+const CHATS_BASE = import.meta.env.VITE_CHATS_API_URL
+const PROMPTS_BASE = import.meta.env.VITE_PROMPTS_API_URL
 
 export async function executePrompt(promptId, model = null) {
   const res = await fetch(`${PROMPTS_BASE}/${promptId}/execute`, {

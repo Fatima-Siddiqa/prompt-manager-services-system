@@ -1,4 +1,4 @@
-const BASE = '/api/prompts/'
+const BASE = import.meta.env.VITE_PROMPTS_API_URL
 
 export async function fetchPrompts(tag = '', limit = 100) {
   const params = new URLSearchParams()
