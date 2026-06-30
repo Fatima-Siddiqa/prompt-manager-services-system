@@ -26,13 +26,14 @@ export default function Sidebar() {
           {'>'} prompt_mgr
         </div>
         <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-          ATS Internship — Week 1
+          ATS Internship — Week 2
         </div>
       </div>
 
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '0 12px' }}>
         {[
           { to: '/', label: 'Prompts', icon: '◈' },
+          { to: '/chats', label: 'Chats', icon: '◇' },
           { to: '/reviews', label: 'Reviews', icon: '◎' },
         ].map(({ to, label, icon }) => (
           <NavLink
@@ -67,6 +68,7 @@ export default function Sidebar() {
         fontFamily: 'var(--font-mono)',
       }}>
         prompt-service :8000<br />
+        llm-service :8002<br />
         review-service :8001
       </div>
     </aside>
