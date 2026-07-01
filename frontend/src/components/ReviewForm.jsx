@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { createReview } from '../api/reviews'
 
-export default function ReviewForm({ promptId, onSubmitted }) {
+export default function ReviewForm({ promptId, chatId, onSubmitted }) {
   const [form, setForm] = useState({ reviewer_name: '', score: 3, feedback: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -11,7 +11,10 @@ export default function ReviewForm({ promptId, onSubmitted }) {
     setLoading(true)
     setError('')
     try {
-      await createReview({ ...form, prompt_id: promptId, score: Number(form.score) })
+      const payload = chatId
+        ? { ...form, target_type: 'chat', chat_id: chatId, score: Number(form.score) }
+        : { ...form, target_type: 'prompt', prompt_id: promptId, score: Number(form.score) }
+      await createReview(payload)
       onSubmitted()
       setForm({ reviewer_name: '', score: 3, feedback: '' })
     } catch (err) {
@@ -90,7 +93,7 @@ export default function ReviewForm({ promptId, onSubmitted }) {
           style={{ ...inputStyle, minHeight: '100px', resize: 'vertical' }}
           value={form.feedback}
           onChange={e => setForm(f => ({ ...f, feedback: e.target.value }))}
-          placeholder="Your written feedback on this prompt..."
+          placeholder={chatId ? 'Your written feedback on this conversation...' : 'Your written feedback on this prompt...'}
           required
         />
       </div>
