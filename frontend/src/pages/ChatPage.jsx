@@ -12,9 +12,13 @@ export default function ChatPage() {
   const [reviewSummary, setReviewSummary] = useState(null)
   const [reviewKey, setReviewKey] = useState(0)
 
-  async function load() {
-    const data = await fetchChat(chatId)
-    setChat(data)
+  async function load(result = null) {
+    if (result) {
+      setChat(result)
+    } else {
+      const data = await fetchChat(chatId)
+      setChat(data)
+    }
   }
 
   async function loadReviewSummary() {
