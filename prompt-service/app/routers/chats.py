@@ -17,8 +17,8 @@ def chat_to_dict(chat, messages):
         "title": chat.title,
         "total_tokens": chat.total_tokens,
         "summary": chat.summary,
-        "created_at": chat.created_at,
-        "updated_at": chat.updated_at,
+        "created_at": chat.created_at.isoformat(),
+        "updated_at": chat.updated_at.isoformat(),
         "messages": [
             {
                 "id": m.id,
@@ -28,7 +28,7 @@ def chat_to_dict(chat, messages):
                 "prompt_tokens": m.prompt_tokens,
                 "completion_tokens": m.completion_tokens,
                 "total_tokens": m.total_tokens,
-                "created_at": m.created_at,
+                "created_at": m.created_at.isoformat(),
             }
             for m in messages
         ],
