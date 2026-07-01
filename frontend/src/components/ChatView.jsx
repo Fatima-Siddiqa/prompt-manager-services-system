@@ -32,7 +32,7 @@ export default function ChatView({ chat, onUpdated }) {
   function handleJobDone(result) {
     setActiveJobId(null)
     setSending(false)
-    onUpdated(result) // pass result directly so parent can update chat
+    onUpdated(result)
   }
 
   function handleJobError(err) {
@@ -77,6 +77,7 @@ export default function ChatView({ chat, onUpdated }) {
         paddingBottom: '16px',
         borderBottom: '1px solid var(--dark-4)',
         marginBottom: '16px',
+        flexShrink: 0,
       }}>
         <div>
           <div style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-primary)' }}>
@@ -115,6 +116,7 @@ export default function ChatView({ chat, onUpdated }) {
           fontSize: '13px',
           lineHeight: '1.6',
           color: 'var(--text-secondary)',
+          flexShrink: 0,
         }}>
           <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--sage)', marginBottom: '6px', textTransform: 'uppercase' }}>
             Summary
@@ -148,7 +150,7 @@ export default function ChatView({ chat, onUpdated }) {
 
       {/* Job poller */}
       {activeJobId && (
-        <div style={{ marginBottom: '8px' }}>
+        <div style={{ marginBottom: '8px', flexShrink: 0 }}>
           <JobPoller
             jobId={activeJobId}
             onDone={handleJobDone}
@@ -157,11 +159,13 @@ export default function ChatView({ chat, onUpdated }) {
         </div>
       )}
 
+      {/* Error */}
       {error && (
-        <div style={{ 
-          fontSize: '13px', 
-          color: 'var(--danger)', 
-          fontFamily: 'var(--font-mono)', 
+        <div style={{
+          flexShrink: 0,
+          fontSize: '13px',
+          color: 'var(--danger)',
+          fontFamily: 'var(--font-mono)',
           marginBottom: '8px',
           display: 'flex',
           justifyContent: 'space-between',
@@ -171,18 +175,23 @@ export default function ChatView({ chat, onUpdated }) {
           border: '1px solid rgba(224,112,112,0.2)',
           borderRadius: 'var(--radius)',
           padding: '10px 12px',
+          zIndex: 10,
+          position: 'relative',
         }}>
-          <span>✕ {error}</span>
+          <span style={{ flex: 1, wordBreak: 'break-word' }}>✕ {error}</span>
           <button
-            onClick={() => setError('')}
+            onClick={(e) => { e.stopPropagation(); setError('') }}
             style={{
               background: 'transparent',
               border: 'none',
               color: 'var(--danger)',
               cursor: 'pointer',
-              fontSize: '16px',
-              padding: '0',
+              fontSize: '20px',
+              padding: '0 4px',
               flexShrink: 0,
+              minWidth: '24px',
+              lineHeight: 1,
+              zIndex: 11,
             }}
           >
             ×
@@ -191,7 +200,7 @@ export default function ChatView({ chat, onUpdated }) {
       )}
 
       {/* Input */}
-      <form onSubmit={handleSend} style={{ display: 'flex', gap: '10px', paddingTop: '12px', borderTop: '1px solid var(--dark-4)' }}>
+      <form onSubmit={handleSend} style={{ display: 'flex', gap: '10px', paddingTop: '12px', borderTop: '1px solid var(--dark-4)', flexShrink: 0 }}>
         <input
           value={input}
           onChange={e => setInput(e.target.value)}
