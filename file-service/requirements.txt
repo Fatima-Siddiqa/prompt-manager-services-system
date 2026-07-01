@@ -4,3 +4,4 @@ python-dotenv
 pydantic-settings
 pymupdf
 python-docx
+python-multipart
