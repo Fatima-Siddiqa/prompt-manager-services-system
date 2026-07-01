@@ -15,6 +15,11 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api\/chats/, '/chats'),
         changeOrigin: true,
       },
+      '/api/jobs': {
+        target: 'http://localhost:8000',
+        rewrite: (path) => path.replace(/^\/api\/jobs/, '/jobs'),
+        changeOrigin: true,
+      },
       '/api/reviews': {
         target: 'http://localhost:8001',
         rewrite: (path) => path.replace(/^\/api\/reviews/, '/reviews'),
