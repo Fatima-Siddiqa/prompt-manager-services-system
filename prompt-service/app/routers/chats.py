@@ -47,7 +47,7 @@ async def run_execute_job(job_id: str, prompt_id: str, model: str, http_client):
         chat = chat_service.create_chat(db, prompt_id, prompt.name)
         chat_service.add_message(db, chat.id, "user", prompt.content)
 
-        messages = [{"role": "user", "content": prompt.content}]
+        messages = [{"role": "system", "content": prompt.content}]
         result = await llm_client.generate(http_client, messages, model)
 
         usage = result["usage"]
