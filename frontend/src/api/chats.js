@@ -44,7 +44,10 @@ export async function fetchChat(chatId) {
 
 export async function summarizeChat(chatId) {
   const res = await fetch(`${CHATS_BASE}/${chatId}/summary`, { method: 'POST' })
-  if (!res.ok) throw new Error('Failed to summarize chat')
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw new Error(data.detail || 'Failed to summarize chat')
+  }
   return res.json()
 }
 
