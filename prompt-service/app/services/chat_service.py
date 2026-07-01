@@ -25,7 +25,7 @@ def list_chats(db: Session, prompt_id: str = None) -> list[Chat]:
     query = db.query(Chat)
     if prompt_id:
         query = query.filter(Chat.prompt_id == prompt_id)
-    return query.order_by(Chat.created_at.desc()).all()
+    return query.order_by(Chat.updated_at.desc()).all()
 
 
 def get_messages(db: Session, chat_id: str) -> list[Message]:
