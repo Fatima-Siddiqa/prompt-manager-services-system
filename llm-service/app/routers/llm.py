@@ -95,8 +95,9 @@ async def generate(request: Request, body: GenerateRequest):
     choice = data["choices"][0]
     usage = data["usage"]
 
+    content = choice["message"]["content"].replace("<pad>", "").strip()
     return GenerateResponse(
-        content=choice["message"]["content"],
+        content=content,
         model=data["model"],
         usage=TokenUsage(
             prompt_tokens=usage["prompt_tokens"],
@@ -122,7 +123,9 @@ async def summarize(request: Request, body: SummarizeRequest):
         max_tokens=300,
     )
 
-    return {"summary": data["choices"][0]["message"]["content"]}
+    summary = data["choices"][0]["message"]["content"]
+    summary = summary.replace("<pad>", "").strip()
+    return {"summary": summary}
 
 
 @router.get("/models")
