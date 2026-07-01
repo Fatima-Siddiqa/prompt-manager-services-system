@@ -7,7 +7,7 @@ from sqlalchemy import create_engine, pool
 from alembic import context
 
 from app.database import Base
-from app.models import prompt, chat
+from app.models import prompt, chat, job
 from app.core.config import settings
 
 config = context.config
