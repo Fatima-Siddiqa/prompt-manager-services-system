@@ -48,7 +48,7 @@ export default function ChatView({ chat, onUpdated }) {
       await summarizeChat(chat.id)
       onUpdated()
     } catch (err) {
-      setError(err.message)
+      setError(`Summarize failed: ${err.message}`)
     } finally {
       setSummarizing(false)
     }
@@ -158,8 +158,35 @@ export default function ChatView({ chat, onUpdated }) {
       )}
 
       {error && (
-        <div style={{ fontSize: '13px', color: 'var(--danger)', fontFamily: 'var(--font-mono)', marginBottom: '8px' }}>
-          ✕ {error}
+        <div style={{ 
+          fontSize: '13px', 
+          color: 'var(--danger)', 
+          fontFamily: 'var(--font-mono)', 
+          marginBottom: '8px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          gap: '8px',
+          background: 'rgba(224,112,112,0.08)',
+          border: '1px solid rgba(224,112,112,0.2)',
+          borderRadius: 'var(--radius)',
+          padding: '10px 12px',
+        }}>
+          <span>✕ {error}</span>
+          <button
+            onClick={() => setError('')}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--danger)',
+              cursor: 'pointer',
+              fontSize: '16px',
+              padding: '0',
+              flexShrink: 0,
+            }}
+          >
+            ×
+          </button>
         </div>
       )}
 
