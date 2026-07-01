@@ -6,7 +6,6 @@ from app.core.config import settings
 async def generate(client: httpx.AsyncClient, messages: list[dict], model: str = None) -> dict:
     payload = {
         "messages": messages,
-        "max_tokens": 50,   # tiny, just enough to verify the flow works
     }
     if model:
         payload["model"] = model
