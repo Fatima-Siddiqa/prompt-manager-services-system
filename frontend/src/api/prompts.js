@@ -4,7 +4,7 @@ export async function fetchPrompts(tag = '', limit = 100) {
   const params = new URLSearchParams()
   if (tag) params.append('tag', tag)
   if (limit) params.append('limit', limit)
-  const res = await fetch(`${BASE}?${params}`)
+  const res = await fetch(`${BASE}/?${params}`)
   if (!res.ok) throw new Error('Failed to fetch prompts')
   return res.json()
 }
