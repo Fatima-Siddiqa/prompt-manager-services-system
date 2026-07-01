@@ -37,6 +37,7 @@ def chat_to_dict(chat, messages):
 
 async def run_execute_job(job_id: str, prompt_id: str, model: str, http_client):
     db = SessionLocal()
+    chat = None
     try:
         prompt = prompt_service.get_prompt_by_id(db, prompt_id)
         if not prompt:
@@ -59,6 +60,8 @@ async def run_execute_job(job_id: str, prompt_id: str, model: str, http_client):
 
         job_service.mark_done(db, job_id, chat_to_dict(chat, all_messages))
     except Exception as e:
+        if chat:
+            chat_service.delete_chat(db, chat)
         job_service.mark_failed(db, job_id, str(e))
     finally:
         db.close()
