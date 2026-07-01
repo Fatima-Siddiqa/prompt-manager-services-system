@@ -11,6 +11,7 @@ export default function ChatPage() {
   const [chat, setChat] = useState(null)
   const [reviewSummary, setReviewSummary] = useState(null)
   const [reviewKey, setReviewKey] = useState(0)
+  const [showReviewForm, setShowReviewForm] = useState(false)
 
   async function load(result = null) {
     if (result) {
@@ -114,14 +115,48 @@ export default function ChatPage() {
         padding: '20px 24px',
         marginTop: '20px',
       }}>
-        <h2 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '16px', color: 'var(--sage)', fontFamily: 'var(--font-mono)' }}>
-          Review this Conversation
-        </h2>
-        <ReviewForm
-          key={reviewKey}
-          chatId={chatId}
-          onSubmitted={() => { setReviewKey(k => k + 1); loadReviewSummary() }}
-        />
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: showReviewForm ? '16px' : 0,
+        }}>
+          <h2 style={{
+            fontSize: '14px',
+            fontWeight: '600',
+            color: 'var(--sage)',
+            fontFamily: 'var(--font-mono)',
+            margin: 0,
+          }}>
+            Review this Conversation
+          </h2>
+          <button
+            onClick={() => setShowReviewForm(s => !s)}
+            style={{
+              background: 'transparent',
+              border: '1px solid var(--dark-4)',
+              borderRadius: 'var(--radius)',
+              color: 'var(--text-muted)',
+              fontSize: '12px',
+              padding: '4px 12px',
+              cursor: 'pointer',
+            }}
+          >
+            {showReviewForm ? 'Cancel' : 'Leave a Review'}
+          </button>
+        </div>
+
+        {showReviewForm && (
+          <ReviewForm
+            key={reviewKey}
+            chatId={chatId}
+            onSubmitted={() => {
+              setReviewKey(k => k + 1)
+              setShowReviewForm(false)
+              loadReviewSummary()
+            }}
+          />
+        )}
       </div>
     </div>
   )
