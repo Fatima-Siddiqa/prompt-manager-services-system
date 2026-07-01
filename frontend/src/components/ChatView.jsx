@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
 import { sendFollowUp, summarizeChat } from '../api/chats'
+import JobPoller from './JobPoller'
 
 export default function ChatView({ chat, onUpdated }) {
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [summarizing, setSummarizing] = useState(false)
   const [error, setError] = useState('')
+  const [activeJobId, setActiveJobId] = useState(null)
   const bottomRef = useRef(null)
 
   useEffect(() => {
@@ -18,14 +20,25 @@ export default function ChatView({ chat, onUpdated }) {
     setSending(true)
     setError('')
     try {
-      await sendFollowUp(chat.id, input.trim())
+      const job = await sendFollowUp(chat.id, input.trim())
       setInput('')
-      onUpdated()
+      setActiveJobId(job.job_id)
     } catch (err) {
       setError(err.message)
-    } finally {
       setSending(false)
     }
+  }
+
+  function handleJobDone(result) {
+    setActiveJobId(null)
+    setSending(false)
+    onUpdated(result) // pass result directly so parent can update chat
+  }
+
+  function handleJobError(err) {
+    setActiveJobId(null)
+    setSending(false)
+    setError(err)
   }
 
   async function handleSummarize() {
@@ -133,6 +146,17 @@ export default function ChatView({ chat, onUpdated }) {
         <div ref={bottomRef} />
       </div>
 
+      {/* Job poller */}
+      {activeJobId && (
+        <div style={{ marginBottom: '8px' }}>
+          <JobPoller
+            jobId={activeJobId}
+            onDone={handleJobDone}
+            onError={handleJobError}
+          />
+        </div>
+      )}
+
       {error && (
         <div style={{ fontSize: '13px', color: 'var(--danger)', fontFamily: 'var(--font-mono)', marginBottom: '8px' }}>
           ✕ {error}
@@ -145,7 +169,7 @@ export default function ChatView({ chat, onUpdated }) {
           value={input}
           onChange={e => setInput(e.target.value)}
           placeholder="Type a follow-up message..."
-          disabled={sending}
+          disabled={sending || !!activeJobId}
           style={{
             flex: 1,
             background: 'var(--dark-2)',
@@ -157,7 +181,7 @@ export default function ChatView({ chat, onUpdated }) {
             outline: 'none',
           }}
         />
-        <button type="submit" disabled={sending || !input.trim()} style={{
+        <button type="submit" disabled={sending || !input.trim() || !!activeJobId} style={{
           padding: '10px 20px',
           background: 'var(--sage)',
           border: 'none',
@@ -166,7 +190,7 @@ export default function ChatView({ chat, onUpdated }) {
           fontSize: '14px',
           fontWeight: '600',
           cursor: 'pointer',
-          opacity: sending || !input.trim() ? 0.6 : 1,
+          opacity: sending || !input.trim() || !!activeJobId ? 0.6 : 1,
         }}>
           {sending ? '...' : 'Send'}
         </button>
