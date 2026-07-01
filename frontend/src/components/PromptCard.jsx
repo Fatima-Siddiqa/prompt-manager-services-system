@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { deletePrompt, updatePrompt } from '../api/prompts'
 import PromptForm from './PromptForm'
 import { executePrompt } from '../api/chats'
+import JobPoller from './JobPoller'
 
 export default function PromptCard({ prompt, onDeleted, onUpdated }) {
   const navigate = useNavigate()
@@ -28,17 +29,30 @@ export default function PromptCard({ prompt, onDeleted, onUpdated }) {
     }
   }
 
+  const [activeJobId, setActiveJobId] = useState(null)
+
   async function handleExecute(e) {
     e.stopPropagation()
     setExecuting(true)
     try {
-      const chat = await executePrompt(prompt.id)
-      navigate(`/chats/${chat.id}`)
+      const job = await executePrompt(prompt.id)
+      setActiveJobId(job.job_id)
     } catch (err) {
       alert(err.message)
-    } finally {
       setExecuting(false)
     }
+  }
+
+  function handleJobDone(result) {
+    setActiveJobId(null)
+    setExecuting(false)
+    navigate(`/chats/${result.id}`)
+  }
+
+  function handleJobError(err) {
+    setActiveJobId(null)
+    setExecuting(false)
+    alert(err)
   }
 
   const tags = prompt.tags ? prompt.tags.split(',') : []
@@ -177,6 +191,13 @@ export default function PromptCard({ prompt, onDeleted, onUpdated }) {
             )}
           </div>
         </>
+      )}
+      {activeJobId && (
+        <JobPoller
+          jobId={activeJobId}
+          onDone={handleJobDone}
+          onError={handleJobError}
+        />
       )}
     </div>
   )
