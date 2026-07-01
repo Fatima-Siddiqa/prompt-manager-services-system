@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react'
 import { fetchPrompts } from '../api/prompts'
-import { fetchReviews, fetchSummary, createReview, deleteReview } from '../api/reviews'
+import { fetchChats } from '../api/chats'
+import { fetchReviews, fetchSummary, fetchChatSummary, createReview, deleteReview } from '../api/reviews'
+
 export default function ReviewsPage() {
   const [reviews, setReviews] = useState([])
   const [prompts, setPrompts] = useState([])
+  const [chats, setChats] = useState([])
   const [loading, setLoading] = useState(true)
+  const [filterType, setFilterType] = useState('all') // 'all' | 'prompt' | 'chat'
   const [filterPromptId, setFilterPromptId] = useState('')
+  const [filterChatId, setFilterChatId] = useState('')
   const [summary, setSummary] = useState(null)
   const [summaryLoading, setSummaryLoading] = useState(false)
   const [selectedReview, setSelectedReview] = useState(null)
@@ -14,21 +19,24 @@ export default function ReviewsPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
-  async function loadReviews(promptId = '') {
+  async function loadReviews(promptId = '', chatId = '') {
     setLoading(true)
     try {
-      const data = await fetchReviews({ promptId })
+      const data = await fetchReviews({ promptId, chatId })
       setReviews(data)
     } finally {
       setLoading(false)
     }
   }
 
-  async function loadSummary(promptId) {
-    if (!promptId) { setSummary(null); return }
+  async function loadSummary(promptId, chatId) {
+    setSummary(null)
+    if (!promptId && !chatId) return
     setSummaryLoading(true)
     try {
-      const s = await fetchSummary(promptId)
+      const s = promptId
+        ? await fetchSummary(promptId)
+        : await fetchChatSummary(chatId)
       setSummary(s)
     } catch {
       setSummary(null)
@@ -39,25 +47,27 @@ export default function ReviewsPage() {
 
   useEffect(() => {
     fetchPrompts().then(setPrompts)
+    fetchChats().then(setChats)
     loadReviews()
   }, [])
 
   useEffect(() => {
-    loadReviews(filterPromptId)
-    loadSummary(filterPromptId)
+    const promptId = filterType === 'prompt' ? filterPromptId : ''
+    const chatId = filterType === 'chat' ? filterChatId : ''
+    loadReviews(promptId, chatId)
+    loadSummary(promptId, chatId)
     setSelectedReview(null)
-  }, [filterPromptId])
+  }, [filterType, filterPromptId, filterChatId])
 
   async function handleSubmit(e) {
     e.preventDefault()
     setSubmitting(true)
     setError('')
     try {
-      await createReview({ ...form, score: Number(form.score) })
+      await createReview({ ...form, target_type: 'prompt', score: Number(form.score) })
       setShowForm(false)
       setForm({ prompt_id: '', reviewer_name: '', score: 3, feedback: '' })
-      loadReviews(filterPromptId)
-      if (filterPromptId) loadSummary(filterPromptId)
+      loadReviews(filterType === 'prompt' ? filterPromptId : '')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -69,8 +79,27 @@ export default function ReviewsPage() {
     e.stopPropagation()
     if (!confirm('Delete this review?')) return
     await deleteReview(reviewId)
-    loadReviews(filterPromptId)
-    if (filterPromptId) loadSummary(filterPromptId)
+    const promptId = filterType === 'prompt' ? filterPromptId : ''
+    const chatId = filterType === 'chat' ? filterChatId : ''
+    loadReviews(promptId, chatId)
+    loadSummary(promptId, chatId)
+  }
+
+  function renderSnapshot(r) {
+    if (r.target_type === 'chat') {
+      try {
+        const messages = JSON.parse(r.snapshot)
+        return messages.map((m, i) => (
+          <div key={i} style={{ marginBottom: '6px' }}>
+            <span style={{ color: 'var(--sage)', textTransform: 'uppercase', fontSize: '10px' }}>{m.role}: </span>
+            {m.content}
+          </div>
+        ))
+      } catch {
+        return r.snapshot
+      }
+    }
+    return r.snapshot
   }
 
   const inputStyle = {
@@ -94,6 +123,17 @@ export default function ReviewsPage() {
     letterSpacing: '0.06em',
   }
 
+  const selectStyle = {
+    background: 'var(--dark-2)',
+    border: '1px solid var(--dark-4)',
+    borderRadius: 'var(--radius)',
+    padding: '8px 14px',
+    color: 'var(--text-primary)',
+    fontSize: '13px',
+    fontFamily: 'var(--font-mono)',
+    outline: 'none',
+  }
+
   return (
     <div>
       {/* Header */}
@@ -102,7 +142,9 @@ export default function ReviewsPage() {
           <h1 style={{ fontSize: '22px', fontWeight: '600' }}>Reviews</h1>
           <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '4px' }}>
             {reviews.length} review{reviews.length !== 1 ? 's' : ''}
-            {filterPromptId ? ' for selected prompt' : ' total'}
+            {filterType === 'prompt' && filterPromptId ? ' for selected prompt' : ''}
+            {filterType === 'chat' && filterChatId ? ' for selected chat' : ''}
+            {filterType === 'all' ? ' total' : ''}
           </p>
         </div>
         <button
@@ -123,7 +165,7 @@ export default function ReviewsPage() {
         </button>
       </div>
 
-      {/* Submit Review Form — POST /reviews */}
+      {/* Submit Review Form */}
       {showForm && (
         <div style={{
           background: 'var(--dark-3)',
@@ -150,7 +192,6 @@ export default function ReviewsPage() {
                 ))}
               </select>
             </div>
-
             <div>
               <label style={labelStyle}>Your Name *</label>
               <input
@@ -161,7 +202,6 @@ export default function ReviewsPage() {
                 required
               />
             </div>
-
             <div>
               <label style={labelStyle}>Score *</label>
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -189,7 +229,6 @@ export default function ReviewsPage() {
                 ))}
               </div>
             </div>
-
             <div>
               <label style={labelStyle}>Feedback *</label>
               <textarea
@@ -200,13 +239,11 @@ export default function ReviewsPage() {
                 required
               />
             </div>
-
             {error && (
               <div style={{ fontSize: '13px', color: 'var(--danger)', fontFamily: 'var(--font-mono)' }}>
                 ✕ {error}
               </div>
             )}
-
             <button type="submit" disabled={submitting} style={{
               padding: '10px 24px',
               background: 'var(--sage)',
@@ -225,32 +262,63 @@ export default function ReviewsPage() {
         </div>
       )}
 
-      {/* Filter by prompt_id — GET /reviews?prompt_id= */}
-      <div style={{ marginBottom: '20px' }}>
-        <select
-          style={{
-            background: 'var(--dark-2)',
-            border: '1px solid var(--dark-4)',
-            borderRadius: 'var(--radius)',
-            padding: '8px 14px',
-            color: 'var(--text-primary)',
-            fontSize: '13px',
-            fontFamily: 'var(--font-mono)',
-            outline: 'none',
-            width: '280px',
-          }}
-          value={filterPromptId}
-          onChange={e => setFilterPromptId(e.target.value)}
-        >
-          <option value="">All prompts</option>
-          {prompts.map(p => (
-            <option key={p.id} value={p.id}>{p.name}</option>
+      {/* Filter section */}
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
+        {/* Filter type toggle */}
+        <div style={{ display: 'flex', gap: '4px' }}>
+          {['all', 'prompt', 'chat'].map(type => (
+            <button
+              key={type}
+              onClick={() => { setFilterType(type); setFilterPromptId(''); setFilterChatId('') }}
+              style={{
+                padding: '7px 14px',
+                background: filterType === type ? 'var(--sage)' : 'transparent',
+                border: '1px solid',
+                borderColor: filterType === type ? 'var(--sage)' : 'var(--dark-4)',
+                borderRadius: 'var(--radius)',
+                color: filterType === type ? 'var(--dark)' : 'var(--text-muted)',
+                fontSize: '12px',
+                fontFamily: 'var(--font-mono)',
+                cursor: 'pointer',
+                textTransform: 'uppercase',
+              }}
+            >
+              {type}
+            </button>
           ))}
-        </select>
+        </div>
+
+        {/* Prompt filter */}
+        {filterType === 'prompt' && (
+          <select
+            style={{ ...selectStyle, width: '280px' }}
+            value={filterPromptId}
+            onChange={e => setFilterPromptId(e.target.value)}
+          >
+            <option value="">Select a prompt...</option>
+            {prompts.map(p => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+        )}
+
+        {/* Chat filter */}
+        {filterType === 'chat' && (
+          <select
+            style={{ ...selectStyle, width: '280px' }}
+            value={filterChatId}
+            onChange={e => setFilterChatId(e.target.value)}
+          >
+            <option value="">Select a chat...</option>
+            {chats.map(c => (
+              <option key={c.id} value={c.id}>{c.title} — {new Date(c.updated_at).toLocaleDateString()}</option>
+            ))}
+          </select>
+        )}
       </div>
 
-      {/* Summary — GET /reviews/{prompt_id}/summary */}
-      {filterPromptId && (
+      {/* Summary */}
+      {((filterType === 'prompt' && filterPromptId) || (filterType === 'chat' && filterChatId)) && (
         <div style={{
           background: 'var(--dark-3)',
           border: '1px solid var(--dark-4)',
@@ -277,13 +345,13 @@ export default function ReviewsPage() {
             </div>
           ) : (
             <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-              No reviews yet for this prompt.
+              No reviews yet.
             </div>
           )}
         </div>
       )}
 
-      {/* Reviews list — GET /reviews or GET /reviews?prompt_id= */}
+      {/* Reviews list */}
       {loading ? (
         <div style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: '13px' }}>loading...</div>
       ) : reviews.length === 0 ? (
@@ -309,7 +377,20 @@ export default function ReviewsPage() {
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ fontWeight: '600', fontSize: '14px' }}>{r.reviewer_name}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ fontWeight: '600', fontSize: '14px' }}>{r.reviewer_name}</div>
+                  <span style={{
+                    fontSize: '10px',
+                    fontFamily: 'var(--font-mono)',
+                    background: r.target_type === 'chat' ? 'rgba(186,216,182,0.12)' : 'rgba(150,150,255,0.1)',
+                    color: r.target_type === 'chat' ? 'var(--sage)' : 'var(--text-muted)',
+                    padding: '2px 8px',
+                    borderRadius: '4px',
+                    textTransform: 'uppercase',
+                  }}>
+                    {r.target_type}
+                  </span>
+                </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <div style={{ fontFamily: 'var(--font-mono)', fontSize: '18px', fontWeight: '600', color: 'var(--sage)' }}>
                     {r.score}<span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>/5</span>
@@ -332,14 +413,22 @@ export default function ReviewsPage() {
                   </button>
                 </div>
               </div>
+
               <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{r.feedback}</div>
 
-              {/* GET /reviews/{id} — show full details when clicked */}
+              {/* Expanded details */}
               {selectedReview?.id === r.id && (
                 <div style={{ borderTop: '1px solid var(--dark-4)', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
-                    prompt_id: {r.prompt_id}
-                  </div>
+                  {r.target_type === 'prompt' && (
+                    <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                      prompt_id: {r.prompt_id}
+                    </div>
+                  )}
+                  {r.target_type === 'chat' && (
+                    <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                      chat_id: {r.chat_id}
+                    </div>
+                  )}
                   <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
                     reviewed_at: {new Date(r.reviewed_at).toLocaleString()}
                   </div>
@@ -353,13 +442,15 @@ export default function ReviewsPage() {
                     lineHeight: '1.6',
                     whiteSpace: 'pre-wrap',
                     marginTop: '4px',
+                    maxHeight: '200px',
+                    overflowY: 'auto',
                   }}>
-                    {r.prompt_snapshot}
+                    {renderSnapshot(r)}
                   </div>
                 </div>
               )}
 
-              {!selectedReview || selectedReview.id !== r.id ? (
+              {(!selectedReview || selectedReview.id !== r.id) && (
                 <div style={{
                   fontFamily: 'var(--font-mono)',
                   fontSize: '12px',
@@ -372,13 +463,15 @@ export default function ReviewsPage() {
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',
                 }}>
-                  {r.prompt_snapshot}
+                  {r.target_type === 'chat' ? '💬 Chat conversation snapshot' : r.snapshot}
                 </div>
-              ) : null}
+              )}
 
               <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
                 {new Date(r.reviewed_at).toLocaleString()}
-                <span style={{ marginLeft: '12px', opacity: 0.5 }}>click to {selectedReview?.id === r.id ? 'collapse' : 'expand'}</span>
+                <span style={{ marginLeft: '12px', opacity: 0.5 }}>
+                  click to {selectedReview?.id === r.id ? 'collapse' : 'expand'}
+                </span>
               </div>
             </div>
           ))}
