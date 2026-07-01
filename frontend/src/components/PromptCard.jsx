@@ -2,11 +2,14 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { deletePrompt, updatePrompt } from '../api/prompts'
 import PromptForm from './PromptForm'
+import { executePrompt } from '../api/chats'
+import JobPoller from './JobPoller'
 
 export default function PromptCard({ prompt, onDeleted, onUpdated }) {
   const navigate = useNavigate()
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [executing, setExecuting] = useState(false)
 
   async function handleDelete(e) {
     e.stopPropagation()
@@ -24,6 +27,32 @@ export default function PromptCard({ prompt, onDeleted, onUpdated }) {
     } finally {
       setSaving(false)
     }
+  }
+
+  const [activeJobId, setActiveJobId] = useState(null)
+
+  async function handleExecute(e) {
+    e.stopPropagation()
+    setExecuting(true)
+    try {
+      const job = await executePrompt(prompt.id)
+      setActiveJobId(job.job_id)
+    } catch (err) {
+      alert(err.message)
+      setExecuting(false)
+    }
+  }
+
+  function handleJobDone(result) {
+    setActiveJobId(null)
+    setExecuting(false)
+    navigate(`/chats/${result.id}`)
+  }
+
+  function handleJobError(err) {
+    setActiveJobId(null)
+    setExecuting(false)
+    alert(err)
   }
 
   const tags = prompt.tags ? prompt.tags.split(',') : []
@@ -52,7 +81,6 @@ export default function PromptCard({ prompt, onDeleted, onUpdated }) {
             </div>
           )}
         </div>
-
         <div style={{ display: 'flex', gap: '8px', marginLeft: '16px' }}>
           <button
             onClick={e => { e.stopPropagation(); setEditing(s => !s) }}
@@ -68,6 +96,25 @@ export default function PromptCard({ prompt, onDeleted, onUpdated }) {
           >
             {editing ? 'cancel' : 'edit'}
           </button>
+
+          <button
+            onClick={handleExecute}
+            disabled={executing}
+            style={{
+              background: 'var(--sage)',
+              border: 'none',
+              color: 'var(--dark)',
+              fontSize: '12px',
+              fontWeight: '600',
+              padding: '3px 10px',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              opacity: executing ? 0.6 : 1,
+            }}
+          >
+            {executing ? '...' : 'Execute'}
+          </button>
+
           <button
             onClick={handleDelete}
             style={{
@@ -85,6 +132,7 @@ export default function PromptCard({ prompt, onDeleted, onUpdated }) {
             ✕
           </button>
         </div>
+        
       </div>
 
       {editing ? (
@@ -143,6 +191,13 @@ export default function PromptCard({ prompt, onDeleted, onUpdated }) {
             )}
           </div>
         </>
+      )}
+      {activeJobId && (
+        <JobPoller
+          jobId={activeJobId}
+          onDone={handleJobDone}
+          onError={handleJobError}
+        />
       )}
     </div>
   )
