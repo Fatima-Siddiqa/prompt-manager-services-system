@@ -63,6 +63,27 @@ async def run_execute_job(job_id: str, prompt_id: str, model: str, system_prompt
             usage["prompt_tokens"], usage["completion_tokens"], usage["total_tokens"]
         )
         chat = chat_service.update_chat_tokens(db, chat, usage["total_tokens"])
+
+        # generate meaningful title from assistant response, skip filler openers
+        filler_prefixes = [
+            "great!", "sure!", "of course!", "certainly!", "absolutely!",
+            "sure,", "great,", "of course,", "let me", "i'd be happy",
+            "i'll", "here's", "here is", "happy to help", "i can help",
+            "i will", "of course", "definitely",
+        ]
+        content = result["content"].strip()
+        content_lower = content.lower()
+        for filler in filler_prefixes:
+            if content_lower.startswith(filler):
+                content = content[len(filler):].lstrip(" ,.\n").strip()
+                break
+        title = content[:60].strip()
+        if len(content) > 60:
+            title = title.rsplit(' ', 1)[0] + '...'
+        if title:
+            chat.title = title
+            db.commit()
+
         all_messages = chat_service.get_messages(db, chat.id)
 
         job_service.mark_done(db, job_id, chat_to_dict(chat, all_messages))
