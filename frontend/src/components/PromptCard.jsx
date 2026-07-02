@@ -4,12 +4,14 @@ import { deletePrompt, updatePrompt } from '../api/prompts'
 import PromptForm from './PromptForm'
 import { executePrompt } from '../api/chats'
 import JobPoller from './JobPoller'
+import DocumentUpload from './DocumentUpload'
 
 export default function PromptCard({ prompt, onDeleted, onUpdated }) {
   const navigate = useNavigate()
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [executing, setExecuting] = useState(false)
+  const [documentText, setDocumentText] = useState(null)
 
   async function handleDelete(e) {
     e.stopPropagation()
@@ -35,7 +37,7 @@ export default function PromptCard({ prompt, onDeleted, onUpdated }) {
     e.stopPropagation()
     setExecuting(true)
     try {
-      const job = await executePrompt(prompt.id)
+      const job = await executePrompt(prompt.id, null, documentText)
       setActiveJobId(job.job_id)
     } catch (err) {
       alert(err.message)
@@ -134,6 +136,13 @@ export default function PromptCard({ prompt, onDeleted, onUpdated }) {
         </div>
         
       </div>
+      {/* Document upload — sits below header, above content */}
+      {!editing && (
+        <DocumentUpload
+          onDocumentReady={(text) => setDocumentText(text)}
+          onDocumentCleared={() => setDocumentText(null)}
+        />
+      )}
 
       {editing ? (
         <div style={{ borderTop: '1px solid var(--dark-4)', paddingTop: '16px' }}>

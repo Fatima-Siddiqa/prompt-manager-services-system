@@ -12,6 +12,7 @@ export default function ChatPage() {
   const [reviewSummary, setReviewSummary] = useState(null)
   const [reviewKey, setReviewKey] = useState(0)
   const [showReviewForm, setShowReviewForm] = useState(false)
+  const [showReviewSummary, setShowReviewSummary] = useState(false)
 
   async function load(result = null) {
     if (result) {
@@ -47,6 +48,7 @@ export default function ChatPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {/* Top nav */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <button
           onClick={() => navigate('/chats')}
@@ -78,48 +80,24 @@ export default function ChatPage() {
         </button>
       </div>
 
-      <div style={{ height: '60vh', minHeight: '400px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+      {/* Chat */}
+      <div style={{ height: '65vh', minHeight: '400px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         <ChatView chat={chat} onUpdated={load} />
       </div>
 
-      {reviewSummary && (
-        <div style={{
-          background: 'var(--dark-3)',
-          border: '1px solid var(--dark-4)',
-          borderRadius: 'var(--radius-lg)',
-          padding: '16px 20px',
-          marginTop: '20px',
-          display: 'flex',
-          gap: '32px',
-          alignItems: 'center',
-        }}>
-          <div>
-            <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>AVG SCORE</div>
-            <div style={{ fontSize: '24px', fontWeight: '600', color: 'var(--sage)', fontFamily: 'var(--font-mono)' }}>
-              {reviewSummary.average_score}<span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>/5</span>
-            </div>
-          </div>
-          <div>
-            <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>REVIEWS</div>
-            <div style={{ fontSize: '24px', fontWeight: '600', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
-              {reviewSummary.total_reviews}
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* Review section — scores + form in one block */}
       <div style={{
         background: 'var(--dark-3)',
         border: '1px solid var(--dark-4)',
         borderRadius: 'var(--radius-lg)',
         padding: '20px 24px',
-        marginTop: '20px',
+        marginTop: '32px',
       }}>
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: showReviewForm ? '16px' : 0,
+          marginBottom: (showReviewForm || showReviewSummary) ? '16px' : 0,
         }}>
           <h2 style={{
             fontSize: '14px',
@@ -130,22 +108,69 @@ export default function ChatPage() {
           }}>
             Review this Conversation
           </h2>
-          <button
-            onClick={() => setShowReviewForm(s => !s)}
-            style={{
-              background: 'transparent',
-              border: '1px solid var(--dark-4)',
-              borderRadius: 'var(--radius)',
-              color: 'var(--text-muted)',
-              fontSize: '12px',
-              padding: '4px 12px',
-              cursor: 'pointer',
-            }}
-          >
-            {showReviewForm ? 'Cancel' : 'Leave a Review'}
-          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {reviewSummary && (
+              <button
+                onClick={() => setShowReviewSummary(s => !s)}
+                style={{
+                  background: 'transparent',
+                  border: '1px solid var(--dark-4)',
+                  borderRadius: 'var(--radius)',
+                  color: 'var(--text-muted)',
+                  fontSize: '12px',
+                  padding: '4px 12px',
+                  cursor: 'pointer',
+                  fontFamily: 'var(--font-mono)',
+                }}
+              >
+                {showReviewSummary
+                  ? 'Hide Scores'
+                  : `${reviewSummary.total_reviews} Review${reviewSummary.total_reviews !== 1 ? 's' : ''} · ${reviewSummary.average_score}/5`}
+              </button>
+            )}
+            <button
+              onClick={() => setShowReviewForm(s => !s)}
+              style={{
+                background: 'transparent',
+                border: '1px solid var(--dark-4)',
+                borderRadius: 'var(--radius)',
+                color: 'var(--text-muted)',
+                fontSize: '12px',
+                padding: '4px 12px',
+                cursor: 'pointer',
+              }}
+            >
+              {showReviewForm ? 'Cancel' : 'Leave a Review'}
+            </button>
+          </div>
         </div>
 
+        {/* Scores panel */}
+        {showReviewSummary && reviewSummary && (
+          <div style={{
+            display: 'flex',
+            gap: '32px',
+            alignItems: 'center',
+            paddingBottom: showReviewForm ? '16px' : 0,
+            borderBottom: showReviewForm ? '1px solid var(--dark-4)' : 'none',
+            marginBottom: showReviewForm ? '16px' : 0,
+          }}>
+            <div>
+              <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>AVG SCORE</div>
+              <div style={{ fontSize: '24px', fontWeight: '600', color: 'var(--sage)', fontFamily: 'var(--font-mono)' }}>
+                {reviewSummary.average_score}<span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>/5</span>
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>REVIEWS</div>
+              <div style={{ fontSize: '24px', fontWeight: '600', color: 'var(--text-primary)', fontFamily: 'var(--font-mono)' }}>
+                {reviewSummary.total_reviews}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Review form */}
         {showReviewForm && (
           <ReviewForm
             key={reviewKey}

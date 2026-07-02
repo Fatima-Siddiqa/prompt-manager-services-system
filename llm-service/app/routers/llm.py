@@ -95,7 +95,7 @@ async def generate(request: Request, body: GenerateRequest):
     choice = data["choices"][0]
     usage = data["usage"]
 
-    content = choice["message"]["content"].replace("<pad>", "").strip()
+    content = (choice["message"]["content"] or "").replace("<pad>", "").strip()
     return GenerateResponse(
         content=content,
         model=data["model"],
