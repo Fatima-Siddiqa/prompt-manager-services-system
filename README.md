@@ -31,6 +31,10 @@ file-service   → local disk (uploads/)
 
 Each service runs independently. nginx routes traffic — it does not serve static files.
 
+`llm-service` (port 8002) is never reached directly by the browser or through nginx — it's
+only called server-to-server by `prompt-service` over httpx, using the `LLM_SERVICE_URL`
+env var. That's why it has no `/api/...` route of its own above; it doesn't need one.
+
 ---
 
 ## Prerequisites
@@ -125,9 +129,9 @@ Copy `.env.example` to `.env`:
 ```env
 OPENROUTER_API_KEY=sk-or-your-key-here
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
-DEFAULT_MODEL=google/gemma-4-31b-it:free
+DEFAULT_MODEL=your_model_here
 SERVICE_PORT=8002
-FALLBACK_MODELS=meta-llama/llama-3.1-8b-instruct:free,google/gemma-3-4b-it:free,mistralai/mistral-7b-instruct:free
+FALLBACK_MODELS=your_fallback_model_1,your_fallback_model_2,your_fallback_model_3
 HEALTH_CHECK_INTERVAL_SECONDS=30
 ```
 
@@ -231,9 +235,9 @@ REVIEWS_DIR=reviews
 ```env
 OPENROUTER_API_KEY=sk-or-your-key-here
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
-DEFAULT_MODEL=google/gemma-4-31b-it:free
+DEFAULT_MODEL=your_model_here
 SERVICE_PORT=8002
-FALLBACK_MODELS=meta-llama/llama-3.1-8b-instruct:free,google/gemma-3-4b-it:free,mistralai/mistral-7b-instruct:free
+FALLBACK_MODELS=your_fallback_model_1,your_fallback_model_2,your_fallback_model_3
 HEALTH_CHECK_INTERVAL_SECONDS=30
 ```
 
@@ -290,7 +294,7 @@ curl -X POST http://localhost:8000/prompts/ \
     "description": "Chained storytelling prompt",
     "content": "You are a master storyteller...",
     "tags": "creative,storytelling",
-    "model_target": "google/gemma-4-31b-it:free"
+    "model_target": "your_model_here"
   }'
 
 # List all prompts
@@ -322,7 +326,6 @@ curl -X POST http://localhost:8000/prompts/{id}/execute \
   -H "Content-Type: application/json" \
   -d '{}'
 
-# Execute with document context
 curl -X POST http://localhost:8000/prompts/{id}/execute \
   -H "Content-Type: application/json" \
   -d '{"system_prompt": "Document text here..."}'
@@ -335,11 +338,11 @@ curl -X POST http://localhost:8000/chats/{chat_id}/messages \
   -H "Content-Type: application/json" \
   -d '{"content": "Tell me more."}'
 
-# List all chats
-curl http://localhost:8000/chats/
+# List all chats (no trailing slash — route is defined as "/chats")
+curl http://localhost:8000/chats
 
 # Filter chats by prompt
-curl "http://localhost:8000/chats/?prompt_id={prompt_id}"
+curl "http://localhost:8000/chats?prompt_id={prompt_id}"
 
 # Get a chat with all messages
 curl http://localhost:8000/chats/{chat_id}
@@ -507,7 +510,8 @@ main           ← production (merged after each completed week)
 
 - All API keys and secrets live in `.env` files — never committed to git
 - `nginx.conf` is gitignored — use `nginx.conf.example` as a template
-- Free OpenRouter models share a daily quota (50 requests/day account-wide)
+- Free OpenRouter models share a daily quota (50 requests/day account-wide) — check your
+  provider's current limits, since free-tier quotas change over time
 - The fallback scheduler runs every 30 seconds silently in the background
 - Uploaded files are saved to `file-service/uploads/` on the host machine
 - Document text is truncated to ~3000 tokens before being sent as a system prompt
