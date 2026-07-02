@@ -35,7 +35,7 @@ def chat_to_dict(chat, messages):
     }
 
 
-async def run_execute_job(job_id: str, prompt_id: str, model: str, http_client):
+async def run_execute_job(job_id: str, prompt_id: str, model: str, system_prompt: str, http_client):
     db = SessionLocal()
     chat = None
     try:
@@ -45,9 +45,16 @@ async def run_execute_job(job_id: str, prompt_id: str, model: str, http_client):
             return
 
         chat = chat_service.create_chat(db, prompt_id, prompt.name)
+
+        # build messages — prepend system prompt if document attached
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": f"The following is a document the user has provided for context:\n\n{system_prompt}"})
+            chat_service.add_message(db, chat.id, "system", f"[Document context attached]")
+
+        messages.append({"role": "user", "content": prompt.content})
         chat_service.add_message(db, chat.id, "user", prompt.content)
 
-        messages = [{"role": "system", "content": prompt.content}]
         result = await llm_client.generate(http_client, messages, model)
 
         usage = result["usage"]
@@ -56,6 +63,27 @@ async def run_execute_job(job_id: str, prompt_id: str, model: str, http_client):
             usage["prompt_tokens"], usage["completion_tokens"], usage["total_tokens"]
         )
         chat = chat_service.update_chat_tokens(db, chat, usage["total_tokens"])
+
+        # generate meaningful title from assistant response, skip filler openers
+        filler_prefixes = [
+            "great!", "sure!", "of course!", "certainly!", "absolutely!",
+            "sure,", "great,", "of course,", "let me", "i'd be happy",
+            "i'll", "here's", "here is", "happy to help", "i can help",
+            "i will", "of course", "definitely",
+        ]
+        content = result["content"].strip()
+        content_lower = content.lower()
+        for filler in filler_prefixes:
+            if content_lower.startswith(filler):
+                content = content[len(filler):].lstrip(" ,.\n").strip()
+                break
+        title = content[:60].strip()
+        if len(content) > 60:
+            title = title.rsplit(' ', 1)[0] + '...'
+        if title:
+            chat.title = title
+            db.commit()
+
         all_messages = chat_service.get_messages(db, chat.id)
 
         job_service.mark_done(db, job_id, chat_to_dict(chat, all_messages))
@@ -67,7 +95,7 @@ async def run_execute_job(job_id: str, prompt_id: str, model: str, http_client):
         db.close()
 
 
-async def run_follow_up_job(job_id: str, chat_id: str, content: str, model: str, http_client):
+async def run_follow_up_job(job_id: str, chat_id: str, content: str, model: str, system_prompt: str, http_client):
     db = SessionLocal()
     try:
         chat = chat_service.get_chat(db, chat_id)
@@ -78,7 +106,13 @@ async def run_follow_up_job(job_id: str, chat_id: str, content: str, model: str,
         chat_service.add_message(db, chat_id, "user", content)
 
         all_messages = chat_service.get_messages(db, chat_id)
-        messages_payload = [{"role": m.role, "content": m.content} for m in all_messages]
+        messages_payload = []
+
+        # prepend document context if provided
+        if system_prompt:
+            messages_payload.append({"role": "system", "content": f"The following is a document the user has provided for context:\n\n{system_prompt}"})
+
+        messages_payload += [{"role": m.role, "content": m.content} for m in all_messages if m.role != "system"]
 
         result = await llm_client.generate(http_client, messages_payload, model)
 
@@ -104,10 +138,8 @@ async def execute_prompt(prompt_id: str, body: ExecuteRequest, background_tasks:
         raise HTTPException(status_code=404, detail="Prompt not found")
 
     job = await asyncio.to_thread(job_service.create_job, db)
-
     http_client = request.app.state.http_client
-    background_tasks.add_task(run_execute_job, job.id, prompt_id, body.model, http_client)
-
+    background_tasks.add_task(run_execute_job, job.id, prompt_id, body.model, body.system_prompt, http_client)
     return {"job_id": job.id, "status": "pending"}
 
 
@@ -118,10 +150,8 @@ async def follow_up(chat_id: str, body: FollowUpRequest, background_tasks: Backg
         raise HTTPException(status_code=404, detail="Chat not found")
 
     job = await asyncio.to_thread(job_service.create_job, db, chat_id)
-
     http_client = request.app.state.http_client
-    background_tasks.add_task(run_follow_up_job, job.id, chat_id, body.content, body.model, http_client)
-
+    background_tasks.add_task(run_follow_up_job, job.id, chat_id, body.content, body.model, body.system_prompt, http_client)
     return {"job_id": job.id, "status": "pending"}
 
 

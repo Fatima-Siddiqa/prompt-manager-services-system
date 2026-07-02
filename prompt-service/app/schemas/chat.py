@@ -33,11 +33,13 @@ class ChatOut(BaseModel):
 
 class ExecuteRequest(BaseModel):
     model: Optional[str] = None
+    system_prompt: Optional[str] = None
 
 
 class FollowUpRequest(BaseModel):
     content: str
     model: Optional[str] = None
+    system_prompt: Optional[str] = None
 
 
 class SummarizeResponse(BaseModel):

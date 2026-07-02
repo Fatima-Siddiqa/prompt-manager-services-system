@@ -27,6 +27,11 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api\/reviews/, '/reviews'),
         changeOrigin: true,
       },
+      '/api/files': {
+        target: 'http://localhost:8003',
+        rewrite: (path) => path.replace(/^\/api\/files/, '/files'),
+        changeOrigin: true,
+      },
     },
   },
 })
