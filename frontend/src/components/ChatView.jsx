@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { sendFollowUp, summarizeChat } from '../api/chats'
 import JobPoller from './JobPoller'
+import DocumentUpload from './DocumentUpload'
 
 export default function ChatView({ chat, onUpdated }) {
   const [input, setInput] = useState('')
@@ -8,6 +9,8 @@ export default function ChatView({ chat, onUpdated }) {
   const [summarizing, setSummarizing] = useState(false)
   const [error, setError] = useState('')
   const [activeJobId, setActiveJobId] = useState(null)
+  const [documentText, setDocumentText] = useState(null)
+  const [documentName, setDocumentName] = useState(null)
   const bottomRef = useRef(null)
 
   useEffect(() => {
@@ -20,7 +23,7 @@ export default function ChatView({ chat, onUpdated }) {
     setSending(true)
     setError('')
     try {
-      const job = await sendFollowUp(chat.id, input.trim())
+      const job = await sendFollowUp(chat.id, input.trim(), null, documentText)
       setInput('')
       setActiveJobId(job.job_id)
     } catch (err) {
@@ -134,7 +137,7 @@ export default function ChatView({ chat, onUpdated }) {
         gap: '14px',
         paddingBottom: '16px',
       }}>
-        {chat.messages.map(m => (
+        {chat.messages.filter(m => m.content && m.content.trim()).map(m => (
           <div key={m.id} style={bubbleStyle(m.role)}>
             <div style={{ fontSize: '10px', fontFamily: 'var(--font-mono)', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase' }}>
               {m.role}
@@ -198,6 +201,18 @@ export default function ChatView({ chat, onUpdated }) {
           </button>
         </div>
       )}
+
+      {/* Document upload */}
+      <DocumentUpload
+        onDocumentReady={(text, filename) => {
+          setDocumentText(text)
+          setDocumentName(filename)
+        }}
+        onDocumentCleared={() => {
+          setDocumentText(null)
+          setDocumentName(null)
+        }}
+      />
 
       {/* Input */}
       <form onSubmit={handleSend} style={{ display: 'flex', gap: '10px', paddingTop: '12px', borderTop: '1px solid var(--dark-4)', flexShrink: 0 }}>
