@@ -13,3 +13,7 @@ temp/
 node_modules/
 dist/
 review-service/reviews/*.json
+file-service/uploads/*.pdf
+file-service/uploads/*.docx
+file-service/uploads/*.doc
+file-service/uploads/*.meta.json
