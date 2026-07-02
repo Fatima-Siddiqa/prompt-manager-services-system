@@ -67,9 +67,10 @@ export default function Sidebar() {
         color: 'var(--text-muted)',
         fontFamily: 'var(--font-mono)',
       }}>
-        prompt-service :8000<br />
+        prompt-service :8000<br /> 
+        review-service :8001<br />
         llm-service :8002<br />
-        review-service :8001
+        file-service :8003
       </div>
     </aside>
   )

@@ -11,6 +11,7 @@ export default function ChatView({ chat, onUpdated }) {
   const [activeJobId, setActiveJobId] = useState(null)
   const [documentText, setDocumentText] = useState(null)
   const [documentName, setDocumentName] = useState(null)
+  const [showSummary, setShowSummary] = useState(false)
   const bottomRef = useRef(null)
 
   useEffect(() => {
@@ -108,23 +109,39 @@ export default function ChatView({ chat, onUpdated }) {
         </button>
       </div>
 
-      {/* Summary panel */}
+      {/* Summary panel — collapsible */}
       {chat.summary && (
-        <div style={{
-          background: 'rgba(186,216,182,0.08)',
-          border: '1px solid var(--dark-4)',
-          borderRadius: 'var(--radius)',
-          padding: '14px 16px',
-          marginBottom: '20px',
-          fontSize: '13px',
-          lineHeight: '1.6',
-          color: 'var(--text-secondary)',
-          flexShrink: 0,
-        }}>
-          <div style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--sage)', marginBottom: '6px', textTransform: 'uppercase' }}>
-            Summary
-          </div>
-          {chat.summary}
+        <div style={{ flexShrink: 0, marginBottom: '8px' }}>
+          <button
+            onClick={() => setShowSummary(s => !s)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--sage)',
+              fontSize: '11px',
+              fontFamily: 'var(--font-mono)',
+              cursor: 'pointer',
+              padding: '0 0 8px 0',
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+            }}
+          >
+            {showSummary ? '▼ hide summary' : '▶ show summary'}
+          </button>
+          {showSummary && (
+            <div style={{
+              background: 'rgba(186,216,182,0.08)',
+              border: '1px solid var(--dark-4)',
+              borderRadius: 'var(--radius)',
+              padding: '14px 16px',
+              marginBottom: '8px',
+              fontSize: '13px',
+              lineHeight: '1.6',
+              color: 'var(--text-secondary)',
+            }}>
+              {chat.summary}
+            </div>
+          )}
         </div>
       )}
 
@@ -202,20 +219,18 @@ export default function ChatView({ chat, onUpdated }) {
         </div>
       )}
 
-      {/* Document upload */}
-      <DocumentUpload
-        onDocumentReady={(text, filename) => {
-          setDocumentText(text)
-          setDocumentName(filename)
-        }}
-        onDocumentCleared={() => {
-          setDocumentText(null)
-          setDocumentName(null)
-        }}
-      />
-
-      {/* Input */}
-      <form onSubmit={handleSend} style={{ display: 'flex', gap: '10px', paddingTop: '12px', borderTop: '1px solid var(--dark-4)', flexShrink: 0 }}>
+      {/* Input + Document upload */}
+      <form onSubmit={handleSend} style={{ display: 'flex', gap: '10px', paddingTop: '12px', borderTop: '1px solid var(--dark-4)', flexShrink: 0, alignItems: 'center' }}>
+        <DocumentUpload
+          onDocumentReady={(text, filename) => {
+            setDocumentText(text)
+            setDocumentName(filename)
+          }}
+          onDocumentCleared={() => {
+            setDocumentText(null)
+            setDocumentName(null)
+          }}
+        />
         <input
           value={input}
           onChange={e => setInput(e.target.value)}
